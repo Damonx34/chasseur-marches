@@ -1,57 +1,27 @@
 import requests
-from bs4 import BeautifulSoup
-import random
 
-def scrape_boamp(keyword="informatique"):
-    print(f"--- 🕵️ SCRAPING DIRECT DU BOAMP POUR : {keyword} ---")
-    
-    # URL de recherche directe sur le site (pas l'API)
+def scrape_boamp(keyword="test"):
     url = f"https://www.boamp.fr/pages/recherche/?q={keyword}"
-    
+    # On utilise un User-Agent très standard
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,webp,*/*;q=0.8",
-        "Accept-Language": "fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3",
-        "Referer": "https://www.google.com/"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
     }
-
+    
     try:
-        # On tente de récupérer la page
-        response = requests.get(url, headers=headers, timeout=20)
+        # On tente de joindre le site
+        response = requests.get(url, headers=headers, timeout=15)
         
-        if response.status_code != 200:
-            print(f"❌ Erreur site : {response.status_code}")
-            return []
-
-        soup = BeautifulSoup(response.text, 'html.parser')
-        
-        # On cherche les cartes d'annonces (les classes du BOAMP)
-        items = soup.find_all('div', class_='list-item')
-        
-        if not items:
-            print("⚠️ Aucune annonce visible sur la page.")
-            return []
-
-        results = []
-        for item in items[:6]: # On prend les 6 premières
-            try:
-                title_tag = item.find('h2', class_='item-title') or item.find('a')
-                link_tag = item.find('a', href=True)
-                content_tag = item.find('div', class_='item-content')
-                
-                if title_tag and link_tag:
-                    results.append({
-                        'id': str(random.randint(100000, 999999)),
-                        'titre': title_tag.get_text().strip(),
-                        'objet': content_tag.get_text().strip() if content_tag else "Consultez l'annonce pour plus de détails.",
-                        'link': "https://www.boamp.fr" + link_tag['href']
-                    })
-            except Exception:
-                continue
-                
-        print(f"✅ {len(results)} annonces extraites par scraping !")
-        return results
-
+        # On crée un résultat qui nous affiche le code HTTP reçu
+        return [{
+            "id": "DEBUG",
+            "titre": f"DIAGNOSTIC : Code {response.status_code}",
+            "objet": "Si le code est 403, Streamlit est bloqué. Si c'est 200, le site répond mais on lit mal les données.",
+            "link": "#"
+        }]
     except Exception as e:
-        print(f"💥 Erreur Scraping : {e}")
-        return []
+        return [{
+            "id": "ERROR",
+            "titre": "Erreur de connexion",
+            "objet": str(e),
+            "link": "#"
+        }]
